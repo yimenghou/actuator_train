@@ -16,26 +16,25 @@
 #include <functional>
 
 #define FUNC_NAME " ["  << __FUNCTION__ << "] "
+#define EqualCriterion(name, criterion)                       \
+inline bool name##Equal(const double t1, const double t2) {   \
+  return (fabs(t1-t2) <= criterion)?1:0;                      \
+}                                                             \
+
+static constexpr double kEpsilon = 0.001;
+static constexpr double kEpsilonLoose = 1.0;
+static constexpr int kLoopRate = 10;
+
+EqualCriterion(Strictly, kEpsilon)
+EqualCriterion(Roughly, kEpsilonLoose)
 
 namespace actuator_train {
-
-constexpr double kEpsilon = 0.001;
-constexpr double kEpsilonLoose = 1.0;
-constexpr int kLoopRate = 10;
 
 enum class ExecutionOutcome:int {
   SUCCESS=0,
   TIMEOUT=-1,
   FAIL=-2,
 };
-
-#define EqualCriterion(name, criterion)                       \
-inline bool name##Equal(const double& t1, const double& t2) { \
-  return (fabs(t1-t2) <= criterion)?1:0;                      \
-}                                                             \
-
-EqualCriterion(Strictly, kEpsilon)
-EqualCriterion(Roughly, kEpsilonLoose)
 
 /**
  * @class Blob
@@ -184,7 +183,7 @@ public:
   virtual void setEqualFunction(const std::string& equal_name) {
     namespace ph = std::placeholders;
     equal_name_ = equal_name;
-    if (equal_name_=="Strictly") {
+    if (equal_name_ == "Strictly") {
       checkEqual = std::bind(&StrictlyEqual, ph::_1, ph::_2);  
     } else {
       checkEqual = std::bind(&RoughlyEqual, ph::_1, ph::_2);     
@@ -395,7 +394,7 @@ private:
   std::string equal_name_;
   bool is_initialized_;
 
-  std::function<bool(const double&,const double&)> checkEqual;
+  std::function<bool(const double, const double)> checkEqual;
   std::function<bool()> checkGoal;
 };
 
